@@ -40,14 +40,14 @@ $ScriptPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path)
 $today = Get-Date
 $launchTime = $today.ToString('ddMMyyyy-hhmm')
 
-#Setting the report filename
-$reportHtmlFile = $reportHtmlDir+"\$($reportHtmlName)_"+$launchTime+".html"
-
 #Importing required assets
 . ("$($ScriptPath)\GlobalVariables.ps1")
 . ("$($ScriptPath)\StyleCSS.ps1")
 . ("$($ScriptPath)\HtmlCode.ps1")
 . ("$($ScriptPath)\Functions.ps1")
+
+#Setting the report filename
+$reportHtmlFile = $reportHtmlDir+"\$($reportHtmlName)_"+$launchTime+".html"
 
 #Region Hosts
 #Getting Host infos
@@ -375,4 +375,5 @@ if ($emailReport -and $reportHtmlRequired)
             Default {Write-Host -ForegroundColor Yellow "You must select an email system, msgraph or mailkit"}
         }
         
+
     }
