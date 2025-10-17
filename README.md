@@ -4,6 +4,7 @@
 ## Overview
 
 This PowerShell script automates the collection of detailed information about a Hyper-V environment, including hosts, virtual machines, snapshots, replication status, virtual hard disks (VHDX), network adapters, and virtual switches. It generates an HTML report and optionally sends it via email.
+Support for clustered environments will be introduced in a future release.
 
 ---
 
