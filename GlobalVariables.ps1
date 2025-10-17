@@ -1,4 +1,4 @@
-#Script Info - do not modify
+#Script Info - do not modify the following line
 $scriptVersion = "1.0"
 
 #Cluster Environment - Coming soon...
@@ -38,3 +38,4 @@ $smtpAuthRequired = $true
 #DO NOT USE A SENSITIVE OR PRIVILEGED ACCOUNT HERE!!!
 $smtpServerUser = "smtpserver.user"
 $smtpServerPwd = "mySecretPwd"
+
