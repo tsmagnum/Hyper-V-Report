@@ -203,6 +203,7 @@ if ($vhdxInfoNeeded)
             {
                 $vhdxInfo = [PSCustomObject]@{
                 Host = $vhdx.ComputerName
+                VM = $vm.VMName
                 Path = $vhdx.Path
                 Format = $vhdx.VhdFormat
                 Type = $vhdx.VhdType
@@ -377,3 +378,4 @@ if ($emailReport -and $reportHtmlRequired)
         
 
     }
+
