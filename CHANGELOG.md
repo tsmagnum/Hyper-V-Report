@@ -1,21 +1,20 @@
-
-Changelog
+# Changelog
 All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/en/1.0.0/, and this project adheres to https://semver.org/spec/v2.0.0.html.
 
-[Unreleased]
+## [Unreleased]
 
 Placeholder for upcoming changes.
 
-[1.0.0] - 2025-10-23
+## [1.0.0] - 2025-10-23
 
-Added
+### Added
 Initial release of the project.
 Core functionality implemented.
 Basic documentation and setup instructions.
 
-Fixed
+### Fixed
 Initial bug fixes during development.
 
-Changed
+### Changed
 Finalized configuration settings before release.
