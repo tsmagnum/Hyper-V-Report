@@ -42,67 +42,106 @@ $launchTime = $today.ToString('ddMMyyyy-hhmm')
 
 #Importing required assets
 . ("$($ScriptPath)\GlobalVariables.ps1")
-. ("$($ScriptPath)\StyleCSS.ps1")
 . ("$($ScriptPath)\HtmlCode.ps1")
 . ("$($ScriptPath)\Functions.ps1")
+
+#Setting the report style
+switch ($reportStyle) {
+    minimal 
+        { $styleSheet = "StyleCSS-Minimal.ps1" }
+    pro 
+        { $styleSheet = "StyleCSS-Pro.ps1" }
+    prodark 
+        { $styleSheet = "StyleCSS-ProDark.ps1" }    
+    colorful 
+        { $styleSheet = "StyleCSS-Colorful.ps1" }
+    Default 
+        { $styleSheet = "StyleCSS-Professional.ps1" }
+}
+
+. ("$($ScriptPath)\Style\$styleSheet")
 
 #Setting the report filename
 $reportHtmlFile = $reportHtmlDir+"\$($reportHtmlName)_"+$launchTime+".html"
 
+#Setting the encrypted creds file path
+if ($emailReport)
+{
+    $encryptedSMTPCredsFile = "$($ScriptPath)\$encryptedSMTPCredsFileName"
+}
+
 #Region Hosts
+$vmHosts = [System.Collections.ArrayList]@()
+
 #Getting Host infos
 if ($clusterDeployment)
     {
-        #Doing stuff for cluster env - Coming soon...
+        $clusterNodes = Get-ClusterNode -Cluster .
+        
+        foreach ($clusterNode in $clusterNodes)
+        {      
+            $vmHost = Get-VMHost -ComputerName $clusterNode.NodeName
+
+            [void]$vmHosts.Add($vmHost)
+        }
+        
+        $vmHostsList = Get-VmHostInfo -vmHosts $vmHosts
     }
 
+#Non clustered deployments
 else 
-    {
-        $vmHostsList = @()
+    { 
         $vmHost = Get-VMHost 
 
-            $hostInfos =  Get-CimInstance Win32_OperatingSystem
-            $vhdPathDrive = (Get-VMHost).VirtualHardDiskPath.Split(":")[0]
-            $hypervInfo = [PSCustomObject]@{     
-                    Name = $vmHost.ComputerName
-                    LogicalCPU = $vmHost.LogicalProcessorCount
-                    RAM_GB = [System.Math]::round((($vmHost.MemoryCapacity)/1GB),2)
-                    Free_RAM_GB = [System.Math]::round((($hostInfos).FreePhysicalMemory/1MB),2)
-                    VHD_Volume = $vhdPathDrive+":"
-                    Free_VHD_Vol_GB = [System.Math]::round(((Get-Volume $vhdPathDrive).SizeRemaining/1GB),2)
-                    OsVersion = $hostInfos.Version
-            }
-
-        $vmHostsList += $hypervInfo
+        $vmHostsList = Get-VmHostInfo -vmHosts $vmHost
     }
+
 Write-Host -ForegroundColor Cyan "###### Hyper-V Hosts infos ######"
 $vmHostsList | Format-Table 
 
 #endregion
 
+#Region CSV Health - Only for clustered environments
+if (($clusterDeployment) -and ($csvHealthInfoNeeded))
+    {
+        $csvHealthList = Get-CsvHealth -clusterNodes $clusterNodes
+
+        Write-Host -ForegroundColor Cyan "###### CSV Health Info ######"
+        $csvHealthList | Format-Table
+    }
+#endregion
+
+#Region CSV Space Utilization - Only for clustered environments
+if ($clusterDeployment)
+    {
+        $csvSpaceList = Get-CsvSpaceUtilization
+
+        Write-Host -ForegroundColor Cyan "###### CSV Space Utilization ######"
+        $csvSpaceList | Format-Table
+    }
+#endregion
+
 #Region VMs
 #Getting VMs detailed infos
 $vmsList =@()
-$vms = Get-VM 
+
+if ($clusterDeployment)
+    {
+        $vms = foreach ($clusterNode in $clusterNodes)
+            {
+                Get-VM -ComputerName $clusterNode.NodeName
+            }
+    }
+
+#Non clustered deployments
+else
+    {
+        $vms = Get-VM 
+    }
 
 foreach ($vm in $vms)
     {
-        $vmInfo = [PSCustomObject]@{
-        Name = $vm.Name
-        Gen = $vm.Generation
-        Version = $vm.Version
-        vCPU = $vm.ProcessorCount
-        RAM_Assigned = [System.Math]::round((($vm.MemoryAssigned)/1GB),2)
-        RAM_Demand = [System.Math]::round((($vm.MemoryDemand)/1GB),2)
-        Dyn_Memory = $vm.DynamicMemoryEnabled
-        IP_Addr_NIC0 = $vm.NetworkAdapters[0].IPAddresses[0]
-        Snapshots = (Get-VMSnapshot -VMName $vm.Name).Count
-        State = $vm.State
-        Heartbeat = $vm.Heartbeat
-        Uptime = $vm.Uptime.ToString("dd\.hh\:mm")
-        Replication = $vm.ReplicationState
-        Creation_Time = $vm.CreationTime
-        }
+        $vmInfo = Get-VmInfo -vm $vm
 
         $vmsList += $vmInfo
     }
@@ -114,108 +153,28 @@ $vmsList | Format-Table
 
 #Region Snapshots
 #Getting Snapshots
-$vmSnapshotsList = @()
+$vmSnapshotsList = Get-SnapshotInfo -vms $vms
 
-foreach ($vm in $vms)
-    {    
-        $foundSnapshots = Get-VMSnapshot -VMName $vm.name
-        
-        if (($foundSnapshots).Count -gt 0)
-            {
-                foreach ($foundSnapshot in $foundSnapshots)
-                    {
-                        $snapInfo = [PSCustomObject]@{
-                        VM = $foundSnapshot.VMName
-                        Name = $foundSnapshot.Name
-                        Creation_Time = $foundSnapshot.CreationTime
-                        Age_Days = $today.Subtract($foundSnapshot.CreationTime).Days
-                        Parent_Snap = $foundSnapshot.ParentSnapshotName
-                        }   
-
-                        $vmSnapshotsList += $snapInfo
-                    }
-            }
-
-        else 
-            {
-                        $snapInfo = [PSCustomObject]@{
-                        VM = $vm.VMName
-                        Name = "No snapshots found"
-                        Creation_Time = "N/A"
-                        Age_Days = "N/A"
-                        Parent_Snap = "No snapshots found"
-                        }   
-
-                        $vmSnapshotsList += $snapInfo
-
-            }
-
-        }
 Write-Host -ForegroundColor Cyan "###### Snapshots infos ######" 
 $vmSnapshotsList | Format-Table 
-
 #endregion
 
 #Region replication
 if($replicationInfoNeeded) 
     {
-        $replicationsList = @()
-        #Getting the Replication status
-        $replicatedVms = ($vm | Where-Object {$_.ReplicationState -ne "Disabled"})
-        if (($replicatedVms).Count -gt 0)
-            {
-                foreach ($vm in $replicatedVms)
-                {
-                    $replication = Get-VmReplication -Vmname $vm.VMName |`
-                        Select-Object Name,State,Health,LastReplicationTime,PrimaryServer,ReplicaServer,AuthType
-                    $replicationsList += $replication
-                    }
-                 
-                Write-Host -ForegroundColor Cyan "###### Replication infos ######"
-                $replicationsList | Format-Table
-            }
+        $replicationsList = Get-ReplicationInfo -vms $vms
+
+        Write-Host -ForegroundColor Cyan "###### Replication infos ######"
+        $replicationsList | Format-Table
         
-        #Creating a dummy object to correctly format the HTML report with no replications
-        else
-        {
-            $statusMsg = "No replicated VMs found!"
-            Write-Host -ForegroundColor Cyan "###### Replication infos ######"
-            Write-Host -ForegroundColor Yellow $statusMsg
-            $noReplicationInfo = [PSCustomObject]@{
-                Replication_Infos = $statusMsg
-                    }
-            $replicationsList += $noReplicationInfo
-        }
     }
 #endregion
 
 #Region VHDX
 if ($vhdxInfoNeeded)
     {
-        $vhdxList = @()
-
-        foreach ($vm in $vms)
-        {
-            $vhdxs = Get-VHD -VMId $vm.VMId |`
-                Select-Object ComputerName,Path,VhdFormat,VhdType,FileSize,Size,FragmentationPercentage
-            
-            foreach ($vhdx in $vhdxs)
-            {
-                $vhdxInfo = [PSCustomObject]@{
-                Host = $vhdx.ComputerName
-                VM = $vm.VMName
-                Path = $vhdx.Path
-                Format = $vhdx.VhdFormat
-                Type = $vhdx.VhdType
-                File_Size_GB = [System.Math]::round(($vhdx.FileSize/1GB),2)
-                Size_GB = $vhdx.Size/1GB
-                Frag_Perc = $vhdx.FragmentationPercentage
-                }
-
-                $vhdxList += $vhdxInfo
-            }    
-            
-        }
+        $vhdxList = Get-VHDXInfo -vms $vms
+        
         Write-Host -ForegroundColor Cyan "###### VHDX infos ######"
         $vhdxList | Format-Table
     }
@@ -224,31 +183,8 @@ if ($vhdxInfoNeeded)
 #Region VMNetworkAdapter
 if ($vmnetInfoNeeded)
     {
-        $vmnetAdapterList = @()
+        $vmnetAdapterList = Get-VmnetInfo -vms $vms
 
-        foreach ($vm in $vms)
-        {
-            $vmnetadapts = Get-VMNetworkAdapter -vm $vm |`
-                Select-Object MacAddress,Connected,VMName,IsSynthetic,IPAddresses,SwitchName,Status,VlanSetting
-            
-            foreach ($vmnetadapt in $vmnetadapts)
-            {
-                $vmnetAdaptInfo = [PSCustomObject]@{
-                    VM = $vmnetadapt.VMName
-                    MAC = $vmnetadapt.MacAddress
-                    IP_Addr = $vmnetadapt.IPAddresses | Out-String
-                    Connected = $vmnetadapt.Connected
-                    vSwitch = $vmnetadapt.SwitchName
-                    #Status = $vmnetadapt.Status.
-                    Vlan_Mode = $vmnetadapt.VlanSetting.OperationMode
-                    Vlan_Id = $vmnetadapt.VlanSetting.AccessVlanId
-
-                }
-
-                $vmnetAdapterList += $vmnetAdaptInfo
-            }    
-            
-        }
         Write-Host -ForegroundColor Cyan "###### VM Net Adapters infos ######"
         $vmnetAdapterList | Format-Table
 
@@ -258,27 +194,15 @@ if ($vmnetInfoNeeded)
 #Region Management OS NetworkAdapter
 if ($osNetInfoNeeded)
     {
-        $osNetAdapterList = @()
-
-            $osNetadapts = Get-VMNetworkAdapter -ManagementOS |`
-                Select-Object Name,MacAddress,IPAddresses,SwitchName,Status,VlanSetting
-            
-            foreach ($osNetadapt in $osNetadapts)
-            {
-                $osNetAdaptInfo = [PSCustomObject]@{
-                    Name = $osNetadapt.Name
-                    MAC = $osNetadapt.MacAddress
-                    IP_Addr = Get-MgmtOsNicIpAddr -adapterName $osNetadapt.Name
-                    vSwitch = $osNetadapt.SwitchName
-                    Status = $osNetadapt.Status | Out-String
-                    Vlan_Mode = $osNetadapt.VlanSetting.OperationMode
-                    Vlan_Id = $osNetadapt.VlanSetting.AccessVlanId
-
-                    
-                }
-                
-                $osNetAdapterList += $osNetAdaptInfo
-            }    
+        if ($clusterDeployment)
+        { 
+            $osNetAdapterList = Get-OsNetAdapterInfo -vmHost $vmHosts
+        }
+        
+        else
+        {
+            $osNetAdapterList = Get-OsNetAdapterInfo -vmHost $vmHost
+        }            
            
         Write-Host -ForegroundColor Cyan "###### Management OS Adapters infos ######"
         $osNetAdapterList | Format-Table
@@ -289,73 +213,110 @@ if ($osNetInfoNeeded)
 #Region VirtualSwitch
 if ($vswitchInfoNeeded)
     {
-       $vswitchList = @() 
-
-       $vswitches = Get-VMSwitch | `
-        Select-Object ComputerName,Name,EmbeddedTeamingEnabled,SwitchType,AllowManagementOS
-
-        foreach ($vswitch in $vswitches)
-            {
-                $vswitchInfo = [PSCustomObject]@{
-                    Host = $vswitch.ComputerName
-                    Virtual_Switch = $vswitch.Name
-                    SET = $vswitch.EmbeddedTeamingEnabled
-                    Uplinks = Get-VswitchMember -vswitch $vswitch.Name
-                    Type = $vswitch.SwitchType
-                    Mgmt_OS_Allowed = $vswitch.AllowManagementOS
-
-                }
-
-                $vswitchList += $vswitchInfo
-            }
+      
+        if ($clusterDeployment)
+        {
+            $vswitchesList = Get-VswitchInfo -vmHost $vmhosts
+        }
+        
+        else
+        {
+            $vswitchesList = Get-VswitchInfo -vmHost $vmhost
+        }
                 
         Write-Host -ForegroundColor Cyan "###### Virtual Switches infos ######"
-        $vswitchList | Format-Table
+        $vswitchesList | Format-Table
     }
 #endregion
+
+#Region Cluster Configuration Info
+if ($clusterDeployment -and $clusterConfigInfoNeeded)
+{
+    $clusterConfigInfoList = Get-ClusterConfigInfo
+    
+    Write-Host -ForegroundColor Cyan "###### Cluster config infos ######"
+    $clusterConfigInfoList | Format-Table
+}
+#endregion
+
+#Region Cluster Networks Info
+if ($clusterDeployment -and $clusterNetworksInfoNeeded)
+{
+    $clusterNetworksList = Get-ClusterNetworksInfo
+
+    Write-Host -ForegroundColor Cyan "###### Cluster networks infos ######"
+    $clusterNetworksList | Format-Table
+}
+#endregion
+
+############### Report and Email ###############
 
 #Creating the HTML report
 if ($reportHtmlRequired)
     {
-        $dataHTML =@()
+        $dataHTML = [System.Collections.ArrayList]@()
 
         $vmhostsHTML = $preContent + $titleHtmlHosts + ($vmHostsList | ConvertTo-Html -Fragment)
-        $dataHTML += $vmhostsHTML
+        [void]$dataHTML.Add($vmhostsHTML)
+
+        if (($clusterDeployment) -and ($csvHealthInfoNeeded))
+        {
+            $csvHealthHTML = $titleHtmlcsvHealth + ($csvHealthList | ConvertTo-Html -Fragment)
+            [void]$dataHTML.Add($csvHealthHTML)
+        }
+
+        if ($clusterDeployment)
+        {
+            $csvSpaceHTML = $titleHtmlcsvSpace + ($csvSpaceList | ConvertTo-Html -Fragment)
+            [void]$dataHTML.Add($csvSpaceHTML)
+        }
 
         $vmsHTML =  $titleHtmlVms + ($vmsList | ConvertTo-Html -Fragment)
-        $dataHTML += $vmsHTML
+        [void]$dataHTML.Add($vmsHTML)
 
         $snapshotsHTML = $titleHtmlSnapshots + ($vmSnapshotsList | ConvertTo-Html -Fragment)
-        $dataHTML += $snapshotsHTML
+        [void]$dataHTML.Add($snapshotsHTML)
 
         if ($replicationInfoNeeded)
         {
             $replicationHTML = $titleHtmlReplication + ($replicationsList | ConvertTo-Html -Fragment)
-            $dataHTML += $replicationHTML
+            [void]$dataHTML.Add($replicationHTML)
         }
 
         if ($vhdxList) 
         {
             $vhdxListHTML = $titleHtmlVhdx + ($vhdxList | ConvertTo-Html -Fragment)
-            $dataHTML += $vhdxListHTML
+            [void]$dataHTML.Add($vhdxListHTML)
         }
 
         if ($vmnetInfoNeeded)
         {
             $vmnetAdapterListHTML = $titleHtmlVmnetAdapter + ($vmnetAdapterList | ConvertTo-Html -Fragment)
-            $dataHTML += $vmnetAdapterListHTML
+            [void]$dataHTML.Add($vmnetAdapterListHTML)
         }
 
         if ($osNetInfoNeeded)
         {
             $osNetAdapterListHTML = $titleHtmlOsNetAdapter + ($osNetAdapterList | ConvertTo-Html -Fragment)
-            $dataHTML += $osNetAdapterListHTML
+            [void]$dataHTML.Add($osNetAdapterListHTML)
         }
 
         if ($vswitchInfoNeeded)
                 {
-            $vswitchListHTML = $titleHtmlVswitch + ($vswitchList | ConvertTo-Html -Fragment)
-            $dataHTML += $vswitchListHTML
+            $vswitchesListHTML = $titleHtmlVswitch + ($vswitchesList | ConvertTo-Html -Fragment)
+            [void]$dataHTML.Add($vswitchesListHTML)
+        }
+
+        if ($clusterDeployment -and $clusterConfigInfoNeeded)
+        {
+            $clusterConfigInfoListHTML = $titleHtmlClusterConfig + ($clusterConfigInfoList | ConvertTo-Html -Fragment)
+            [void]$dataHTML.Add($clusterConfigInfoListHTML)
+        }
+
+                if ($clusterDeployment -and $clusterNetworksInfoNeeded)
+        {
+            $clusterNetworksListHTML = $titleHtmlClusterNetworks + ($clusterNetworksList | ConvertTo-Html -Fragment)
+            [void]$dataHTML.Add($clusterNetworksListHTML)
         }
 
         $htmlReport = ConvertTo-Html -Head $header -Title $title -PostContent $postContent -Body $dataHTML 

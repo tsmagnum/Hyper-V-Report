@@ -6,7 +6,22 @@ The format is based on https://keepachangelog.com/en/1.0.0/, and this project ad
 
 Placeholder for upcoming changes.
 
-## [1.0.0] - 2025-10-23
+## [2.0.0] - 2025-10-27
+
+### Added
+Support for clustered environments (currently only AD clusters).
+Option to securely store SMTP credentials.
+CSS templates for styling the report.
+
+### Fixed
+N/A
+
+### Changed
+Information gathering features moved to the Functions.ps1 file.
+CSS stylesheets moved to the Style folder.
+
+
+## [1.0.0] - 2025-10-17
 
 ### Added
 Initial release of the project.
