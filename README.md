@@ -3,11 +3,13 @@
 
 ## Overview
 
-This PowerShell script automates the collection of detailed information about a Hyper-V environment, including hosts, virtual machines, snapshots, replication status, VHDX files, network adapters, virtual switches, and—new in this version—CSV health and space utilization, cluster configuration, and cluster network details. It generates a customizable HTML report and can optionally send it via email using MS Graph or MailKit.
+This PowerShell script automates the collection of detailed information about a Hyper-V environment, including hosts, virtual machines, snapshots, replication status, VHDX files, network adapters, virtual switches, and cluster-specific metrics. It generates a customizable HTML report and can optionally send it via email using MS Graph or MailKit.
 
-The script supports both standalone and clustered deployments.
+The script supports both **standalone** and **clustered** deployments.
 
-> ⚠️ Note: The script installs required modules (MS Graph or MailKit) if not already present. Avoid running it if module installation could impact your environment.
+> ⚠️ **Note**: The script installs required modules (MS Graph or MailKit) if not already present. Avoid running it if module installation could impact your environment.
+
+---
 
 ## Features
 
@@ -18,23 +20,33 @@ The script supports both standalone and clustered deployments.
 - Gathers VHDX file details
 - Extracts VM and management OS network adapter data
 - Lists virtual switch configurations
-- NEW: Reports CSV health and space utilization (clustered only)
-- NEW: Includes cluster configuration and network details
+- Reports CSV health and space utilization (clustered only)
+- Includes cluster configuration and network details
 - Generates a comprehensive HTML report with selectable styles
 - Sends the report via email using MS Graph or MailKit
+
+---
 
 ## Prerequisites
 
 - PowerShell 5.1 or later
 - Hyper-V role installed
 - Required modules:
-  - Hyper-V
-  - CimCmdlets
+  - `Hyper-V`
+  - `CimCmdlets`
 - External scripts in the same directory:
-  - GlobalVariables.ps1
-  - StyleCSS.ps1 (or variants like StyleCSS-Pro.ps1, StyleCSS-Colorful.ps1)
-  - HtmlCode.ps1
-  - Functions.ps1
+  - `GlobalVariables.ps1`
+  - `HtmlCode.ps1`
+  - `Functions.ps1`
+  - `Save-SafeCreds.ps1`
+  - CSS styles in the `Style` subfolder:
+    - `StyleCSS-Minimal.ps1`
+    - `StyleCSS-Pro.ps1`
+    - `StyleCSS-ProDark.ps1`
+    - `StyleCSS-Colorful.ps1`
+    - `StyleCSS-Professional.ps1`
+
+---
 
 ## Script Parameters
 
@@ -58,11 +70,15 @@ Defined in `GlobalVariables.ps1`:
 - `$emailSystem` – Email system to use (`msgraph` or `mailkit`)
 - `$encryptedSMTPCredsFileName` – Filename for encrypted SMTP credentials
 
+---
+
 ## Output
 
 - **HTML Report**: Saved in `$reportHtmlDir` with a timestamped filename.
 - **Console Output**: Displays formatted tables for each section.
 - **Email**: Sent if `$emailReport` is enabled and `$reportHtmlRequired` is true.
+
+---
 
 ## Usage
 
@@ -71,6 +87,8 @@ Defined in `GlobalVariables.ps1`:
 ```
 
 Ensure all required variables and modules are properly configured before execution.
+
+---
 
 ## Sections in the Report
 
@@ -87,8 +105,25 @@ Ensure all required variables and modules are properly configured before executi
 11. **Cluster Configuration** – Cluster settings and roles
 12. **Cluster Networks** – Cluster network topology and status
 
-## Notes
+---
 
-- Cluster support is now implemented.
-- Email system must be explicitly selected (`msgraph` or `mailkit`).
-- Only the user who encrypted SMTP credentials can decrypt them.
+## Support Script: Save-SafeCreds.ps1
+
+To securely store SMTP credentials for email delivery, use the `Save-SafeCreds.ps1` script:
+
+### Usage
+
+```powershell
+.\Save-SafeCreds.ps1
+```
+
+This script:
+- Prompts for SMTP username and password
+- Encrypts the credentials using the current user's context
+- Saves them to an XML file (e.g., `EncryptedCreds.xml`)
+- Ensures only the user who created the file can decrypt it
+
+Make sure the filename matches the value of `$encryptedSMTPCredsFileName` in `GlobalVariables.ps1`.
+
+---
+
