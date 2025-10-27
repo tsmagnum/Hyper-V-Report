@@ -115,7 +115,7 @@ To securely store SMTP credentials for email delivery, use the `Save-SafeCreds.p
 ### Usage
 
 ```powershell
-Start-Process powershell -Verb runAs -ArgumentList '.\Save-SafeCreds.ps1'
+'.\Save-SafeCreds.ps1'
 ```
 
 This script:
