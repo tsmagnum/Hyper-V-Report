@@ -9,27 +9,24 @@ Placeholder for upcoming changes.
 ## [2.0.0] - 2025-10-27
 
 ### Added
-Support for clustered environments (currently only AD clusters).
-Option to securely store SMTP credentials.
-CSS templates for styling the report.
-
-### Fixed
-N/A
+- Support for clustered environments (currently only AD clusters).
+- Option to securely store SMTP credentials.
+- CSS templates for styling the report.
 
 ### Changed
-Information gathering features moved to the Functions.ps1 file.
-CSS stylesheets moved to the Style folder.
+- Information gathering features moved to the Functions.ps1 file.
+- CSS stylesheets moved to the Style folder.
 
 
 ## [1.0.0] - 2025-10-17
 
 ### Added
-Initial release of the project.
-Core functionality implemented.
-Basic documentation and setup instructions.
+- Initial release of the project.
+- Core functionality implemented.
+- Basic documentation and setup instructions.
 
 ### Fixed
-Initial bug fixes during development.
+- Initial bug fixes during development.
 
 ### Changed
-Finalized configuration settings before release.
+- Finalized configuration settings before release.
