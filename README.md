@@ -5,9 +5,10 @@
 
 This PowerShell script automates the collection of detailed information about a Hyper-V environment, including hosts, virtual machines, snapshots, replication status, VHDX files, network adapters, virtual switches, and cluster-specific metrics. It generates a customizable HTML report and can optionally send it via email using MS Graph or MailKit.
 
-The script supports both **standalone** and **clustered** deployments.
+The script supports both standalone and clustered deployments.
 
-> ⚠️ **Note**: The script installs required modules (MS Graph or MailKit) if not already present. Avoid running it if module installation could impact your environment.
+> ⚠️ Note: The script installs required modules (MS Graph or MailKit) if not already present. Avoid running it if module installation could impact your environment.
+> 🚨 Important: This script must be run in an elevated PowerShell session by a user with administrator rights on the Hyper-V server.
 
 ---
 
@@ -38,7 +39,6 @@ The script supports both **standalone** and **clustered** deployments.
   - `GlobalVariables.ps1`
   - `HtmlCode.ps1`
   - `Functions.ps1`
-  - `Save-SafeCreds.ps1`
   - CSS styles in the `Style` subfolder:
     - `StyleCSS-Minimal.ps1`
     - `StyleCSS-Pro.ps1`
@@ -83,7 +83,7 @@ Defined in `GlobalVariables.ps1`:
 ## Usage
 
 ```powershell
-.\Hyper-V-Report.ps1
+Start-Process powershell -Verb runAs -ArgumentList '.\Hyper-V-Report.ps1'
 ```
 
 Ensure all required variables and modules are properly configured before execution.
@@ -92,18 +92,18 @@ Ensure all required variables and modules are properly configured before executi
 
 ## Sections in the Report
 
-1. **Host Info** – CPU, RAM, OS version, VHD volume stats
-2. **CSV Health Info** – CSV status and health (clustered only)
-3. **CSV Space Utilization** – CSV volume usage (clustered only)
-4. **VM Info** – Name, generation, memory, IP, state, uptime, replication
-5. **Snapshots** – Snapshot name, age, parent snapshot
-6. **Replication** – Status, health, last replication time
-7. **VHDX Info** – Format, type, size, fragmentation
-8. **VM Network Adapters** – MAC, IP, vSwitch, VLAN
-9. **Management OS Adapters** – IP, MAC, vSwitch, VLAN
-10. **Virtual Switches** – Name, type, uplinks, SET status
-11. **Cluster Configuration** – Cluster settings and roles
-12. **Cluster Networks** – Cluster network topology and status
+1. Host Info – CPU, RAM, OS version, VHD volume stats
+2. CSV Health Info – CSV status and health (clustered only)
+3. CSV Space Utilization – CSV volume usage (clustered only)
+4. VM Info – Name, generation, memory, IP, state, uptime, replication
+5. Snapshots – Snapshot name, age, parent snapshot
+6. Replication – Status, health, last replication time
+7. VHDX Info – Format, type, size, fragmentation
+8. VM Network Adapters – MAC, IP, vSwitch, VLAN
+9. Management OS Adapters – IP, MAC, vSwitch, VLAN
+10. Virtual Switches – Name, type, uplinks, SET status
+11. Cluster Configuration – Cluster settings and roles
+12. Cluster Networks – Cluster network topology and status
 
 ---
 
@@ -114,7 +114,7 @@ To securely store SMTP credentials for email delivery, use the `Save-SafeCreds.p
 ### Usage
 
 ```powershell
-.\Save-SafeCreds.ps1
+Start-Process powershell -Verb runAs -ArgumentList '.\Save-SafeCreds.ps1'
 ```
 
 This script:
@@ -126,4 +126,3 @@ This script:
 Make sure the filename matches the value of `$encryptedSMTPCredsFileName` in `GlobalVariables.ps1`.
 
 ---
-
