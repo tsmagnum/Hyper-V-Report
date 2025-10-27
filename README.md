@@ -8,6 +8,7 @@ This PowerShell script automates the collection of detailed information about a 
 The script supports both standalone and clustered deployments.
 
 > ⚠️ Note: The script installs required modules (MS Graph or MailKit) if not already present. Avoid running it if module installation could impact your environment.
+> 
 > 🚨 Important: This script must be run in an elevated PowerShell session by a user with administrator rights on the Hyper-V server.
 
 ---
