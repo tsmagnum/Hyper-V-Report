@@ -1,18 +1,18 @@
 $header = @"
 <style>
-/* Outlook-Compatible Light Theme */
+/* Outlook-Compatible Colorful Theme */
 
 body {
-  background-color: #f9fafb;
+  background-color: #fef6e4;
   font-size: 13px;
   font-family: "Segoe UI", Arial, sans-serif;
-  color: #333333;
+  color: #172b4d;
   margin: 20px;
 }
 
 h1, h2 {
   text-align: center;
-  color: #1f2937;
+  color: #ff6b6b;
   margin: 0 0 12px;
 }
 
@@ -29,18 +29,18 @@ th, td {
 }
 
 th {
-  background-color: #2563eb;
+  background-color: #ff6b6b;
   color: #ffffff;
   font-weight: 400;
 }
 
 td {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 /* Zebra striping: apply manually in HTML */
 tr.even {
-  background-color: #f9fafb;
+  background-color: #fdf2ff;
 }
 
 tr.odd {
