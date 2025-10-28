@@ -45,7 +45,6 @@ The script supports both standalone and clustered deployments.
     - `StyleCSS-Pro.ps1`
     - `StyleCSS-ProDark.ps1`
     - `StyleCSS-Colorful.ps1`
-    - `StyleCSS-Professional.ps1`
 
 ---
 
@@ -84,7 +83,7 @@ Defined in `GlobalVariables.ps1`:
 ## Usage
 
 ```powershell
-Start-Process powershell -Verb runAs -ArgumentList '.\Hyper-V-Report.ps1'
+ '.\Hyper-V-Report.ps1'
 ```
 
 Ensure all required variables and modules are properly configured before execution.
