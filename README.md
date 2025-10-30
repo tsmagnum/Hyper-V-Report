@@ -83,7 +83,7 @@ Defined in `GlobalVariables.ps1`:
 ## Usage
 
 ```powershell
- 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Hyper-V-Report.ps1'
+ 'powershell.exe -ExecutionPolicy Bypass -File .\Hyper-V-Report.ps1'
 ```
 
 Ensure all required variables and modules are properly configured before execution.
@@ -114,7 +114,7 @@ To securely store SMTP credentials for email delivery, use the `Save-SafeCreds.p
 ### Usage
 
 ```powershell
-'powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Save-SafeCreds.ps1'
+'powershell.exe -ExecutionPolicy Bypass -File .\Save-SafeCreds.ps1'
 ```
 
 This script:

@@ -10,8 +10,8 @@ Placeholder for upcoming changes.
 ## [2.0.1] - 2025-10-30
 
 ### Fixed
-- Bug in Save-SafeCreds.ps1 preventing execution of the script fixed
-- Bug in SendEmailReport-Mailkit preventing the import Send-MailKitMessage module
+- Bug in Save-SafeCreds.ps1 preventing execution of the script fixed.
+- Bug in SendEmailReport-Mailkit preventing the import Send-MailKitMessage module.
 
 ## [2.0.0] - 2025-10-27
 
