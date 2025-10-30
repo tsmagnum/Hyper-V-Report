@@ -558,9 +558,10 @@ function SendEmailReport-Mailkit
         if (!(Get-Module -ListAvailable -Name "Send-MailKitMessage")) 
         { 
                 Write-Host -ForegroundColor Yellow "Send-MailKitMessage module missing, installing..."
-                Install-Module -Name "Send-MailKitMessage" -Scope CurrentUser -Force
-                Import-Module -Name "Send-MailKitMessage"
+                Install-Module -Name "Send-MailKitMessage" -Scope CurrentUser -Force           
         }
+		
+		Import-Module -Name "Send-MailKitMessage"
         
         $UseSecureConnectionIfAvailable = $true
 
