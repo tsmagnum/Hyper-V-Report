@@ -29,12 +29,15 @@ if (Test-Path -Path $credsFile)
         Write-Host -ForegroundColor Yellow "An encrypted XML file with creds already exists at this location"
         $userChoice = Read-Host `
             -Prompt "Do you want to overwrite it? Press Y and ENTER to continue, any other key to abort"
-    }
 
-if ($userChoice -ne "y")
+        if ($userChoice -ne "y")
     {
         exit
     }
+
+    }
+
+Write-Host "File not exists"
 
 #Prompting for username and password
 Write-Host -ForegroundColor Yellow "Enter the credentials you want to save"
@@ -54,12 +57,12 @@ try {
         }
         else 
         {
-            throw "There was a problem saving your credentials"
+            throw "There was a problem saving your credentials: $_"
         }
         
 }
 
 catch 
 {
-    Write-Host -ForegroundColor Red "There was a problem saving your credentials"
+    Write-Host -ForegroundColor Red "There was a problem saving your credentials: $_"
 }

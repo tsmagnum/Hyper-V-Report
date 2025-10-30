@@ -1,5 +1,5 @@
 #Script Info - please do not modify the following line
-$scriptVersion = "2.0"
+$scriptVersion = "2.0.1"
 
 #Cluster Environment
 $clusterDeployment = $false #Set to $true for a clustered environment
