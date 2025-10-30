@@ -6,6 +6,7 @@ The format is based on https://keepachangelog.com/en/1.0.0/, and this project ad
 
 Placeholder for upcoming changes.
 
+
 ## [2.0.1] - 2025-10-30
 
 ### Fixed
