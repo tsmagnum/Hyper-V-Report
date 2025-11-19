@@ -41,7 +41,7 @@ function Get-VHDXInfo {
 
         foreach ($vm in $vms)
         {
-            $vhdxs = Get-VHD -VMId $vm.VMId |`
+            $vhdxs = Get-VHD -VMId $vm.VMId -ComputerName $vm.ComputerName |`
                 Select-Object ComputerName,Path,VhdFormat,VhdType,FileSize,Size,FragmentationPercentage
             
             foreach ($vhdx in $vhdxs)
@@ -175,7 +175,7 @@ function Get-VmInfo
         RAM_Demand = [System.Math]::round((($vm.MemoryDemand)/1GB),2)
         Dyn_Memory = $vm.DynamicMemoryEnabled
         IP_Addr_NIC0 = $vm.NetworkAdapters[0].IPAddresses[0]
-        Snapshots = (Get-VMSnapshot -VMName $vm.Name).Count
+        Snapshots = (Get-VMSnapshot -VMName $vm.Name -ComputerName $vm.ComputerName).Count
         Clustered = $vm.IsClustered
         State = $vm.State
         Heartbeat = $vm.Heartbeat
@@ -197,7 +197,7 @@ function Get-SnapshotInfo {
 
     foreach ($vm in $vms)
         {    
-            $foundSnapshots = Get-VMSnapshot -VMName $vm.name
+            $foundSnapshots = Get-VMSnapshot -VMName $vm.name -ComputerName $vm.ComputerName
             
             if (($foundSnapshots).Count -gt 0)
                 {
@@ -289,7 +289,7 @@ function Get-OsNetAdapterInfo
                     Host = $osNetadapt.ComputerName
                     Name = $osNetadapt.Name
                     MAC = $osNetadapt.MacAddress
-                    IP_Addr = Get-MgmtOsNicIpAddr -adapterName $osNetadapt.Name -vmHost $vmHost
+                    IP_Addr = Get-MgmtOsNicIpAddr -adapterName $osNetadapt.Name -vmHost $vmHost | Out-String
                     vSwitch = $osNetadapt.SwitchName
                     Status = $osNetadapt.Status | Out-String
                     Vlan_Mode = $osNetadapt.VlanSetting.OperationMode
