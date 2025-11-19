@@ -1,5 +1,5 @@
 #Script Info - please do not modify the following line
-$scriptVersion = "2.0.1"
+$scriptVersion = "2.0.2"
 
 #Cluster Environment
 $clusterDeployment = $false #Set to $true for a clustered environment
@@ -51,4 +51,5 @@ $encryptedSMTPCredsFileName = "EncryptedCreds.xml" #name of the encrypted creds 
 #This poses a security risk — use these credentials only for testing purposes.
 $smtpServerUser = "smtpserver.user"
 $smtpServerPwd = "mySecretPwd"
+
 
